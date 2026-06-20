@@ -6,20 +6,25 @@ import { usePathname } from 'next/navigation'
 const TABS = [
   { href: '/', label: 'Dashboard' },
   { href: '/pipeline', label: 'Pipeline' },
-  { href: '/money', label: 'Money' },
-  { href: '/tasks', label: 'Tasks' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/contacts', label: 'Contacts' },
-  { href: '/content', label: 'Content' },
-  { href: '/agents', label: 'Agents' },
+  { href: '/money', label: 'Spend & Payments' },
+  { href: '/tasks', label: 'Approvals' },
+  { href: '/projects', label: 'Projects / Sites' },
+  { href: '/contacts', label: 'Suppliers' },
+  { href: '/content', label: 'Materials' },
+  { href: '/agents', label: 'AI Agent' },
 ]
 
-export default function Nav() {
+export default function Nav({ onNavigate }: { onNavigate?: () => void }) {
   const path = usePathname()
   return (
     <nav className="nav">
       {TABS.map(t => (
-        <Link key={t.href} href={t.href} className={path === t.href ? 'active' : ''}>
+        <Link
+          key={t.href}
+          href={t.href}
+          className={path === t.href ? 'active' : ''}
+          onClick={onNavigate}
+        >
           {t.label}
         </Link>
       ))}

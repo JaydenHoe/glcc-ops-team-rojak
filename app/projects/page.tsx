@@ -1,47 +1,57 @@
-import { getRecords, rm, m } from '@/lib/records'
+import { loadAll, projectsView, money, moneyK } from '@/lib/procurement'
 import Empty from '@/app/_components/Empty'
 
 export const dynamic = 'force-dynamic'
 
-// Active client work. category === 'project'. Extra fields live in `meta`.
 export default async function Projects() {
-  const all = await getRecords()
-  const rows = all.filter(r => r.category === 'project')
-  const active = rows.filter(r => r.status === 'active').length
-  const budget = rows.reduce((s, r) => s + Number(r.amount || 0), 0)
-  const pcts = rows.map(r => Number(r.meta?.pct)).filter(n => !Number.isNaN(n))
-  const avgPct = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : 0
+  const db = await loadAll()
+  if (!db.ok) return (
+    <><h1 className="ph">Projects / Sites</h1><p className="cap">Construction projects &amp; their procurement spend</p><Empty /></>
+  )
 
-  const cards: [string, string | number][] = [
-    ['Active', active],
-    ['Total budget', rm(budget)],
-    ['Avg % complete', `${avgPct}%`],
-  ]
+  const rows = projectsView(db)
+  const activeCount = rows.filter(p => p.status === 'active').length
+  const totalBudget = rows.reduce((s, p) => s + Number(p.budget_amount), 0)
+  const totalCommitted = rows.reduce((s, p) => s + p.committed, 0)
 
   return (
     <>
-      <h1 className="ph">Projects</h1>
-      <p className="cap">Active client work</p>
+      <h1 className="ph">Projects / Sites</h1>
+      <p className="cap">Construction projects &amp; their procurement spend</p>
+
       <div className="grid">
-        {cards.map(([l, v]) => (
-          <div className="stat" key={l}><p className="l">{l}</p><p className="v">{v}</p></div>
-        ))}
+        <div className="stat"><p className="l">Active projects</p><p className="v">{activeCount}</p><p className="sub">of {rows.length} total</p></div>
+        <div className="stat"><p className="l">Total budget</p><p className="v">{moneyK(totalBudget)}</p><p className="sub">across all sites</p></div>
+        <div className="stat"><p className="l">Committed spend</p><p className="v">{moneyK(totalCommitted)}</p><p className="sub">approved POs</p></div>
+        <div className="stat"><p className="l">Remaining</p><p className="v">{moneyK(totalBudget - totalCommitted)}</p><p className="sub">budget left</p></div>
       </div>
+
       {rows.length === 0 ? <Empty /> : (
         <table className="tbl">
-          <thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Owner</th><th>Deadline</th><th>Budget</th><th>%</th></tr></thead>
+          <thead><tr>
+            <th>Project</th><th>Site</th><th>Client</th><th className="num">Budget</th>
+            <th className="num">Committed</th><th className="num">Remaining</th><th>Used</th><th className="num">Active PR/PO</th><th>Status</th>
+          </tr></thead>
           <tbody>
-            {rows.map(r => (
-              <tr key={r.id}>
-                <td>{r.title}</td>
-                <td>{m(r, 'client')}</td>
-                <td><span className={`pill ${r.status}`}>{r.status}</span></td>
-                <td>{m(r, 'owner')}</td>
-                <td>{r.due_date ?? '—'}</td>
-                <td>{r.amount ? rm(r.amount) : '—'}</td>
-                <td>{r.meta?.pct != null ? `${r.meta.pct}%` : '—'}</td>
-              </tr>
-            ))}
+            {rows.map(p => {
+              const over = p.usedPct > 100, near = p.usedPct > 80
+              return (
+                <tr key={p.id}>
+                  <td data-label="Project">{p.name}</td>
+                  <td data-label="Site">{p.site_location ?? '—'}</td>
+                  <td data-label="Client">{p.client_name ?? '—'}</td>
+                  <td data-label="Budget" className="num">{money(p.budget_amount)}</td>
+                  <td data-label="Committed" className="num">{money(p.committed)}</td>
+                  <td data-label="Remaining" className="num" style={p.remaining < 0 ? { color: '#ff9b9b' } : undefined}>{money(p.remaining)}</td>
+                  <td data-label="Used">
+                    {p.usedPct}%
+                    <div className={`bar${over ? ' danger' : near ? ' warn' : ''}`}><span style={{ width: `${Math.min(p.usedPct, 100)}%` }} /></div>
+                  </td>
+                  <td data-label="Active PR/PO" className="num">{p.activePRs} / {p.activePOs}</td>
+                  <td data-label="Status"><span className={`pill ${p.status}`}>{p.status.replace('_', ' ')}</span></td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       )}

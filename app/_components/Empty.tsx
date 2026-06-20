@@ -1,9 +1,9 @@
-// Shown when there are no records yet (server component — no secrets here).
+// Shown when the procurement tables are empty / not created yet (server component).
 export default function Empty() {
   return (
     <div className="empty">
-      No records yet — run the SQL from <code>supabase/schema.sql</code> in your Supabase
-      SQL editor (the O step), wire your <code>.env</code> (the E step), then refresh.
+      No procurement data yet — run the SQL from <code>supabase/procurement.sql</code> in your
+      Supabase SQL editor, make sure your <code>.env</code> keys are set, then refresh.
     </div>
   )
 }

@@ -1,48 +1,61 @@
-import { getRecords, m } from '@/lib/records'
+import { loadAll, materialsView, documents, money } from '@/lib/procurement'
 import Empty from '@/app/_components/Empty'
+import Actions from '@/app/_components/Actions'
+import MaterialThumb from '@/app/_components/MaterialThumb'
 
 export const dynamic = 'force-dynamic'
 
-// Social content calendar. category === 'content'. Extra fields live in `meta`.
-export default async function Content() {
-  const all = await getRecords()
-  const rows = all.filter(r => r.category === 'content')
-  const drafts = rows.filter(r => r.status === 'draft').length
-  const scheduled = rows.filter(r => r.status === 'scheduled').length
-  const posted = rows.filter(r => r.status === 'posted').length
+const DOC_CLASS: Record<string, string> = { Quotation: 'sent', PO: 'approved', 'Delivery Order': 'delivered', Invoice: 'invoiced' }
 
-  const cards: [string, number][] = [
-    ['Drafts', drafts],
-    ['Scheduled', scheduled],
-    ['Posted', posted],
-  ]
+export default async function Materials() {
+  const db = await loadAll()
+  if (!db.ok) return (
+    <><h1 className="ph">Materials / Documents</h1><p className="cap">Material catalog &amp; procurement documents</p><Empty /></>
+  )
+
+  const mats = materialsView(db)
+  const docs = documents(db)
 
   return (
     <>
-      <h1 className="ph">Content</h1>
-      <p className="cap">Your posting calendar</p>
-      <div className="grid">
-        {cards.map(([l, v]) => (
-          <div className="stat" key={l}><p className="l">{l}</p><p className="v">{v}</p></div>
-        ))}
-      </div>
-      {rows.length === 0 ? <Empty /> : (
+      <h1 className="ph">Materials / Documents</h1>
+      <p className="cap">Material catalog &amp; procurement documents</p>
+
+      <Actions items={['Add Material', 'Upload Document']} />
+
+      <h2 className="sub-h">Material catalog · {mats.length}</h2>
+      {mats.length === 0 ? <Empty /> : (
         <table className="tbl">
-          <thead><tr><th>Title</th><th>Platform</th><th>Format</th><th>Status</th><th>Date</th><th>Views</th></tr></thead>
+          <thead><tr><th>Material</th><th>Category</th><th>Unit</th><th className="num">Est. unit cost</th><th>Preferred supplier</th></tr></thead>
           <tbody>
-            {rows.map(r => (
-              <tr key={r.id}>
-                <td>{r.title}</td>
-                <td>{m(r, 'platform')}</td>
-                <td>{m(r, 'format')}</td>
-                <td><span className={`pill ${r.status}`}>{r.status}</span></td>
-                <td>{r.due_date ?? '—'}</td>
-                <td>{r.meta?.views != null ? Number(r.meta.views).toLocaleString('en-MY') : '—'}</td>
+            {mats.map(m => (
+              <tr key={m.id}>
+                <td data-label="Material"><span className="mat"><MaterialThumb category={m.category} /><span>{m.name}</span></span></td>
+                <td data-label="Category"><span className="pill">{m.category ?? '—'}</span></td>
+                <td data-label="Unit">{m.unit ?? '—'}</td>
+                <td data-label="Est. unit cost" className="num">{money(m.estimated_unit_cost)}</td>
+                <td data-label="Preferred supplier">{m.preferred}</td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
+
+      <h2 className="sub-h">Documents · {docs.length}</h2>
+      <p className="soon-note">File uploads (quotation / PO / DO / invoice PDFs) arrive in Phase 2 — these are the document references the workflow has produced so far.</p>
+      <table className="tbl">
+        <thead><tr><th>Type</th><th>Reference</th><th>Party</th><th>Date</th></tr></thead>
+        <tbody>
+          {docs.map((d, i) => (
+            <tr key={i}>
+              <td data-label="Type"><span className={`pill ${DOC_CLASS[d.kind] ?? ''}`}>{d.kind}</span></td>
+              <td data-label="Reference">{d.ref}</td>
+              <td data-label="Party">{d.party}</td>
+              <td data-label="Date">{d.date}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </>
   )
 }

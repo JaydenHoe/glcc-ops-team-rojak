@@ -1,40 +1,51 @@
-import { getRecords, rm, DEAL_CATS } from '@/lib/records'
+import { loadAll, pipeline, money } from '@/lib/procurement'
 import Empty from '@/app/_components/Empty'
+import Actions from '@/app/_components/Actions'
 
 export const dynamic = 'force-dynamic'
 
-// Your deal pipeline (leads + invoices), grouped by status.
-const STAGES = ['open', 'new', 'contacted', 'pending', 'won', 'done', 'lost']
+// Class hint so each stage card picks up a sensible status colour.
+const STAGE_CLASS: Record<string, string> = {
+  'Draft PR': 'draft', 'Submitted PR': 'submitted', 'RFQ Sent': 'sent', 'Quote Received': 'quote_received',
+  'PO Pending Approval': 'pending', 'PO Approved': 'approved', 'Partially Delivered': 'partially_delivered',
+  'Delivered': 'delivered', 'Invoiced': 'invoiced', 'Paid': 'paid',
+}
 
 export default async function Pipeline() {
-  const all = await getRecords()
-  const rows = all.filter(r => r.category && DEAL_CATS.includes(r.category))
-  const stages = STAGES.filter(st => rows.some(r => r.status === st))
+  const db = await loadAll()
+  if (!db.ok) return (
+    <><h1 className="ph">Procurement Pipeline</h1><p className="cap">PR → RFQ → PO → Delivery → Invoice → Paid</p><Empty /></>
+  )
+
+  const stages = pipeline(db)
 
   return (
     <>
-      <h1 className="ph">Pipeline</h1>
-      <p className="cap">Your leads &amp; invoices, grouped by status</p>
-      {all.length === 0 ? <Empty /> : rows.length === 0 ? (
-        <p className="empty">No leads or invoices yet — add some on the Dashboard.</p>
-      ) : (
-        <div className="cols">
-          {stages.map(st => {
-            const items = rows.filter(r => r.status === st)
-            return (
-              <div className="col" key={st}>
-                <h3>{st} · {items.length}</h3>
-                {items.map(r => (
-                  <div className="kc" key={r.id}>
-                    <p className="t">{r.title}</p>
-                    <p className="s">{r.amount ? rm(r.amount) : (r.category ?? '—')}</p>
-                  </div>
-                ))}
-              </div>
-            )
-          })}
-        </div>
-      )}
+      <h1 className="ph">Procurement Pipeline</h1>
+      <p className="cap">PR → RFQ → PO → Delivery → Invoice → Paid</p>
+
+      <Actions items={[{ label: '+ Create PR', href: '/requisitions/new' }, 'Request Quote', 'Create PO']} />
+
+      {stages.map(({ stage, items }) => (
+        <section key={stage}>
+          <h2 className="sub-h">
+            <span className={`pill ${STAGE_CLASS[stage] ?? ''}`}>{stage}</span> · {items.length}
+          </h2>
+          {items.length === 0 ? (
+            <p className="soon-note">Nothing at this stage.</p>
+          ) : (
+            <div className="grid">
+              {items.map(it => (
+                <div className="kc" key={it.ref}>
+                  <p className="t"><strong>{it.ref}</strong>{it.amount ? ` · ${money(it.amount)}` : ''}</p>
+                  <p className="s">{it.title}</p>
+                  <p className="s">{it.sub}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      ))}
     </>
   )
 }

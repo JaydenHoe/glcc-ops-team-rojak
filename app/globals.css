@@ -29,6 +29,15 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 .nav a.active { background: var(--surface2); color: var(--text); font-weight: 500; }
 .hint { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--dim); line-height: 1.5; }
 
+/* Mobile chrome — hidden on desktop so the desktop layout is untouched. */
+.topbar { display: none; }
+.overlay { display: none; }
+.hamburger { display: none; }
+.topbar-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--amber); }
+.brand-stack { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-stack strong { font-weight: 600; font-size: 15px; }
+.brand-stack small { font-size: 11px; font-weight: 500; color: var(--dim); }
+
 .main { flex: 1; min-width: 0; padding: 30px 34px; }
 .ph { font-size: 22px; font-weight: 600; margin: 0; }
 .cap { color: var(--dim); font-size: 14px; margin: 4px 0 24px; }
@@ -122,3 +131,204 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 .btn { background: var(--amber); color: #1a1205; border: none; border-radius: 9px; padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .btn:disabled { opacity: 0.6; cursor: default; }
 .brief { white-space: pre-wrap; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin: 14px 0 0; font-size: 13px; line-height: 1.6; color: var(--text); font-family: inherit; }
+
+/* ============================================================
+   PROCUREMENT — status pills, priorities, actions, bars, agent chat.
+   ============================================================ */
+/* Status pills (extends the base .pill colours above). */
+.pill.submitted, .pill.sent, .pill.quote_received, .pill.invoiced { background: rgba(55,138,221,0.16); color: #8ec5ff; }
+.pill.approved, .pill.delivered, .pill.received, .pill.completed { background: rgba(29,158,117,0.16); color: #86e0b8; }
+.pill.pending, .pill.partially_delivered, .pill.partial { background: rgba(239,159,39,0.16); color: #ffcf80; }
+.pill.rejected, .pill.blacklisted { background: rgba(226,75,74,0.18); color: #ff9b9b; }
+
+/* Priority badges. */
+.pri { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; text-transform: capitalize; background: var(--surface2); color: var(--muted); }
+.pri.urgent { background: rgba(226,75,74,0.18); color: #ff9b9b; }
+.pri.high   { background: rgba(239,159,39,0.16); color: #ffcf80; }
+.pri.normal { background: rgba(55,138,221,0.16); color: #8ec5ff; }
+.pri.low    { background: var(--surface2); color: var(--dim); }
+
+/* Phase-2 action buttons. */
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
+.btn.ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn.sm { padding: 7px 12px; font-size: 13px; border-radius: 8px; }
+.soon-note { font-size: 12px; color: var(--dim); margin: -10px 0 18px; }
+
+/* Stat sub-line (e.g. "of RM 6.45m budget"). */
+.stat .sub { color: var(--dim); font-size: 12px; margin: 4px 0 0; }
+.stat.warn { border-color: rgba(239,159,39,0.5); }
+.stat.danger { border-color: rgba(226,75,74,0.5); }
+
+/* Budget / progress bar. */
+.bar { height: 7px; border-radius: 999px; background: var(--surface2); overflow: hidden; margin-top: 8px; }
+.bar > span { display: block; height: 100%; background: #5aa9f0; border-radius: 999px; }
+.bar.warn > span { background: var(--amber); }
+.bar.danger > span { background: #e24b4a; }
+
+/* Section sub-heading inside a page. */
+.sub-h { font-size: 14px; font-weight: 600; color: var(--text); margin: 26px 0 12px; }
+
+/* Right-aligned numeric table cells. */
+.tbl td.num, .tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* AI Procurement Agent — command panel + chat log. */
+.cmds { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 18px; }
+.cmd { text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 13px; cursor: pointer; line-height: 1.4; }
+.cmd:hover { border-color: var(--amber); background: var(--surface2); }
+.cmd .ico { margin-right: 8px; }
+.chatlog { display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 90%; }
+.msg.user { align-self: flex-end; }
+.msg.bot { align-self: flex-start; }
+.bubble { border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; font-family: inherit; }
+.msg.user .bubble { background: var(--amber); color: #1a1205; }
+.msg.bot .bubble { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+.chat-empty { color: var(--dim); font-size: 13px; text-align: center; padding: 24px; border: 1px dashed var(--border); border-radius: 12px; }
+
+/* Phase-2 forms + inline row actions. */
+.form { max-width: 660px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 26px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > label { font-size: 13px; color: var(--muted); }
+.field-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.input, .select, .textarea { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; color: var(--text); font-size: 16px; font-family: inherit; width: 100%; }
+.textarea { min-height: 72px; resize: vertical; }
+.item-row { display: grid; grid-template-columns: 1fr 72px 84px 96px 40px; gap: 8px; margin-bottom: 8px; align-items: center; }
+.item-row .x { height: 40px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); border-radius: 8px; cursor: pointer; font-size: 18px; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.form-err { color: #ff9b9b; font-size: 13px; margin: 0; }
+.mat { display: flex; align-items: center; gap: 10px; }
+@media (max-width: 767px) {
+  .field-2 { grid-template-columns: 1fr; }
+  .item-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* ============================================================
+   MOBILE (≤767px). Scoped layer — desktop CSS above is the base
+   and is never overridden on tablet/desktop, so desktop stays
+   pixel-identical. Phones get a drawer nav + stacked cards.
+   ============================================================ */
+@media (max-width: 767px) {
+  html, body { overflow-x: hidden; }
+  body { font-size: 16px; }
+
+  /* Layout: single column, content full-width under a fixed top bar. */
+  .app { display: block; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 14px 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 30;
+  }
+
+  .hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px; height: 44px;
+    padding: 0;
+    margin-left: -8px;
+    background: none; border: none; cursor: pointer;
+  }
+  .hamburger span {
+    display: block;
+    width: 22px; height: 2px;
+    margin: 0 auto;
+    background: var(--text);
+    border-radius: 2px;
+  }
+
+  /* Dark tap-to-close overlay behind the drawer. */
+  .overlay {
+    display: block;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 40;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+
+  /* Sidebar becomes an off-canvas slide-in drawer. */
+  .side {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    width: 270px; max-width: 84vw;
+    padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    z-index: 50;
+  }
+  .side.open { transform: translateX(0); }
+
+  .nav a { padding: 13px 14px; font-size: 16px; min-height: 44px; }
+
+  /* Main sits below the fixed top bar. */
+  .main {
+    padding: calc(56px + env(safe-area-inset-top) + 18px) 16px
+             calc(24px + env(safe-area-inset-bottom));
+  }
+  .cap { font-size: 15px; }
+
+  /* Stat cards: clean 2-up grid; tuned number size so values don't wrap badly. */
+  .grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat { padding: 14px; }
+  .stat .v { font-size: 22px; }
+
+  /* Tables → stacked, labelled cards. <thead> hidden; each <td> shows its
+     column name via data-label. First cell is the card title. */
+  .tbl, .tbl thead, .tbl tbody, .tbl tr, .tbl th, .tbl td { display: block; }
+  .tbl { width: 100%; border: none; background: none; border-radius: 0; overflow: visible; }
+  .tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tbl tr {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .tbl td {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+    text-align: right;
+  }
+  .tbl tr td:last-child { border-bottom: none; }
+  .tbl td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    flex-shrink: 0;
+  }
+  /* First cell = card heading: full-width, bold, no label. */
+  .tbl td:first-child {
+    text-align: left;
+    font-size: 16px;
+    font-weight: 600;
+    background: var(--surface2);
+  }
+  .tbl td:first-child::before { display: none; }
+
+  /* Pipeline: stack the stage columns vertically. */
+  .cols { flex-direction: column; gap: 18px; }
+
+  /* Tap targets & readable buttons. */
+  .btn { padding: 12px 18px; font-size: 16px; min-height: 44px; }
+
+  /* Agents office: a touch shorter, names readable. */
+  .office { height: 300px; }
+  .agent-card { padding: 14px 16px; }
+}
