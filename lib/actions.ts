@@ -11,7 +11,7 @@ import { revalidatePath } from 'next/cache'
 const today = () => new Date().toISOString().slice(0, 10)
 
 function revalidateAll() {
-  for (const p of ['/', '/tasks', '/pipeline', '/money', '/projects', '/contacts']) revalidatePath(p)
+  for (const p of ['/', '/tasks', '/pipeline', '/money', '/projects', '/contacts', '/inventory']) revalidatePath(p)
 }
 
 export type PRItemInput = {
@@ -209,14 +209,45 @@ export async function createPO(input: POInput): Promise<{ ok: boolean; error?: s
   return { ok: true, po_number }
 }
 
-// 9) Log a goods-receipt delivery against a PO (one click) → PO becomes 'delivered'.
+// 9) Log a goods-receipt delivery against a PO (one click) → PO becomes
+//    'delivered' AND the received quantities flow into project Inventory.
 export async function logDelivery(poId: number): Promise<{ ok: boolean; error?: string }> {
-  const { data: po } = await supabase.from('purchase_orders').select('po_number').eq('id', poId).single()
+  const { data: po } = await supabase.from('purchase_orders').select('po_number, project_id').eq('id', poId).single()
   const ref = (po?.po_number ?? 'PO-0000').replace('PO-', 'DO-')
   const { error } = await supabase.from('deliveries').insert({ po_id: poId, delivery_order_number: ref, received_date: today(), status: 'received', received_by: 'Site Office', remarks: 'Goods received in full' })
   if (error) return { ok: false, error: error.message }
   await supabase.from('purchase_orders').update({ status: 'delivered' }).eq('id', poId)
+
+  // Auto-update inventory: add each received line to the project's stock.
+  const { data: items } = await supabase.from('purchase_order_items').select('*').eq('po_id', poId)
+  for (const it of items ?? []) {
+    let name = it.description as string
+    let unit = it.unit as string | null
+    if (it.material_id) {
+      const { data: m } = await supabase.from('materials').select('name, unit').eq('id', it.material_id).maybeSingle()
+      if (m) { name = m.name; unit = m.unit ?? unit }
+    }
+    const { data: ex } = await supabase.from('inventory').select('id, quantity').eq('project_id', po?.project_id ?? 0).eq('item_name', name).maybeSingle()
+    if (ex) {
+      await supabase.from('inventory').update({ quantity: Number(ex.quantity) + Number(it.quantity), updated_at: new Date().toISOString() }).eq('id', ex.id)
+    } else {
+      await supabase.from('inventory').insert({ project_id: po?.project_id ?? null, material_id: it.material_id, item_name: name, unit, quantity: it.quantity, reorder_level: Math.max(Math.ceil(Number(it.quantity) * 0.3), 5), location: 'Site store' })
+    }
+  }
+
   revalidateAll()
+  return { ok: true }
+}
+
+// 12) Site engineer deducts stock as it's used on site.
+export async function consumeInventory(id: number, qty: number): Promise<{ ok: boolean; error?: string }> {
+  if (!(Number(qty) > 0)) return { ok: false, error: 'Enter a quantity.' }
+  const { data: row } = await supabase.from('inventory').select('quantity').eq('id', id).single()
+  if (!row) return { ok: false, error: 'Item not found.' }
+  const next = Math.max(0, Number(row.quantity) - Number(qty))
+  const { error } = await supabase.from('inventory').update({ quantity: next, updated_at: new Date().toISOString() }).eq('id', id)
+  if (error) return { ok: false, error: error.message }
+  revalidatePath('/inventory')
   return { ok: true }
 }
 

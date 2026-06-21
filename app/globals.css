@@ -140,6 +140,9 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 .pill.approved, .pill.delivered, .pill.received, .pill.completed { background: rgba(29,158,117,0.16); color: #86e0b8; }
 .pill.pending, .pill.partially_delivered, .pill.partial { background: rgba(239,159,39,0.16); color: #ffcf80; }
 .pill.rejected, .pill.blacklisted { background: rgba(226,75,74,0.18); color: #ff9b9b; }
+.pill.ok { background: rgba(29,158,117,0.16); color: #86e0b8; }
+.pill.low { background: rgba(239,159,39,0.16); color: #ffcf80; }
+.pill.out { background: rgba(226,75,74,0.18); color: #ff9b9b; }
 
 /* Priority badges. */
 .pri { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; text-transform: capitalize; background: var(--surface2); color: var(--muted); }

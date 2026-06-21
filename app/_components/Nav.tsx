@@ -11,6 +11,7 @@ const TABS = [
   { href: '/projects', label: 'Projects / Sites' },
   { href: '/contacts', label: 'Suppliers' },
   { href: '/content', label: 'Materials' },
+  { href: '/inventory', label: 'Inventory' },
   { href: '/agents', label: 'AI Agent' },
 ]
 
